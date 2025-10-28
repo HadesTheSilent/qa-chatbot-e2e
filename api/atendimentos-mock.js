@@ -14,12 +14,18 @@ module.exports = (req, res) => {
   }
 
   // req.url for Vercel serverless will be '' for /api/atendimentos-mock
-  // or '/:id' for /api/atendimentos-mock/:id
-  const url = req.url || '';
-  const idMatch = url.match(/^\/(\d+)/);
+  // or '/:id' for /api/atendimentos-mock/:id or '/atendimentos' or '/atendimentos/:id'
+  const url = (req.url || '').replace(/\/+$/,'');
+  const segments = url.split('/').filter(Boolean); // ['atendimentos','123'] or ['123'] or []
+  let id = null;
+  if (segments.length === 1 && /^\d+$/.test(segments[0])) {
+    id = segments[0];
+  } else if (segments.length === 2 && segments[0] === 'atendimentos' && /^\d+$/.test(segments[1])) {
+    id = segments[1];
+  }
 
-  // Create
-  if (req.method === 'POST' && (url === '' || url === '/')) {
+  // Create (accept both / and /atendimentos)
+  if (req.method === 'POST' && (segments.length === 0 || (segments.length === 1 && segments[0] === 'atendimentos'))) {
     const { nome, contato, status = 'open' } = req.body || {};
     if (!nome) return res.status(400).json({ error: 'nome é obrigatório (mock)' });
 
@@ -36,17 +42,15 @@ module.exports = (req, res) => {
     return res.status(201).json(row);
   }
 
-  // Get by id
-  if (req.method === 'GET' && idMatch) {
-    const id = idMatch[1];
+  // Get by id (accept /:id or /atendimentos/:id)
+  if (req.method === 'GET' && id) {
     const row = store.get(id);
     if (!row) return res.status(404).json({ error: 'não encontrado (mock)' });
     return res.json(row);
   }
 
-  // Update status
-  if (req.method === 'PUT' && idMatch) {
-    const id = idMatch[1];
+  // Update status (accept /:id or /atendimentos/:id)
+  if (req.method === 'PUT' && id) {
     const row = store.get(id);
     if (!row) return res.status(404).json({ error: 'não encontrado (mock)' });
     const { status } = req.body || {};
