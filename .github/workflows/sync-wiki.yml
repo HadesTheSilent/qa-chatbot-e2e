@@ -1,46 +1,18 @@
-name: Sync docs to Wiki
+name: Sync docs to Wiki (disabled automatic run)
+
+# NOTE: Automatic sync was causing push errors to the wiki repository
+# (branch name / permission mismatches). The team has decided to
+# manage the wiki content manually (organic text edits). To avoid
+# accidental overwrites, this workflow no longer runs on push. It can
+# still be triggered manually from the Actions tab if desired.
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch: {}
 
 jobs:
-  sync:
+  manual-sync-note:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Configure git
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-    - name: Checkout wiki repo
-      uses: actions/checkout@v4
-      with:
-        # checkout the wiki repository into a separate path to avoid conflicts
-        repository: ${{ github.repository }}.wiki
-        token: ${{ secrets.GITHUB_TOKEN }}
-        path: wiki-repo
-
-    - name: Copy docs into wiki
-      run: |
-        # copy docs folder content and root Vercel note into the wiki clone
-        cp -r docs/* wiki-repo/ || true
-        if [ -f Vercel-Note.md ]; then cp Vercel-Note.md wiki-repo/ || true; fi
-        cd wiki-repo
-        # ensure git user is set in the clone
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add -A
-        # Only commit if there are staged changes
-        if git diff --cached --quiet; then
-          echo "No changes to wiki"
-          exit 0
-        fi
-        git commit -m "docs(wiki): sync docs from main"
-        git push origin main
+      - name: Notice
+        run: |
+          echo "Automatic wiki sync disabled. Edit the wiki manually via GitHub or update files in the 'wiki/' folder and push."
