@@ -19,19 +19,23 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-    - name: Clone wiki
-      env:
-        TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        # clone wiki using the workflow token
-        git clone https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.wiki.git wiki
+    - name: Checkout wiki repo
+      uses: actions/checkout@v4
+      with:
+        # checkout the wiki repository into a separate path to avoid conflicts
+        repository: ${{ github.repository }}.wiki
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: wiki-repo
 
     - name: Copy docs into wiki
       run: |
-        # copy docs folder content and root Vercel note into the wiki repo
-        cp -r docs/* wiki/ || true
-        if [ -f Vercel-Note.md ]; then cp Vercel-Note.md wiki/ || true; fi
-        cd wiki
+        # copy docs folder content and root Vercel note into the wiki clone
+        cp -r docs/* wiki-repo/ || true
+        if [ -f Vercel-Note.md ]; then cp Vercel-Note.md wiki-repo/ || true; fi
+        cd wiki-repo
+        # ensure git user is set in the clone
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add -A
         # Only commit if there are staged changes
         if git diff --cached --quiet; then
