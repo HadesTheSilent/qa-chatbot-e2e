@@ -10,6 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+
     steps:
     - uses: actions/checkout@v4
     
@@ -17,16 +23,32 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
+        cache: 'npm'
     
-    - name: Install dependencies
+    - name: Install dependencies for API
       run: |
-        cd atendimentos-api && npm ci
-        cd ../chatbot-sut && npm ci
+        cd atendimentos-api
+        npm ci
         
-    - name: Start services with Docker Compose
+    - name: Install dependencies for Frontend
       run: |
-        docker compose up -d
-        sleep 10  # Aguarda os serviços iniciarem
+        cd chatbot-sut
+        npm ci
+        
+    - name: Build and start API
+      run: |
+        cd atendimentos-api
+        npm run build
+        npm start &
+        echo "Waiting for API to start..."
+        sleep 15
+        
+    - name: Start Frontend
+      run: |
+        cd chatbot-sut
+        npm run dev &
+        echo "Waiting for frontend to start..."
+        sleep 15
         
     - name: Install Newman
       run: npm install -g newman
@@ -50,9 +72,14 @@ jobs:
     - name: Run Cypress tests
       run: |
         cd chatbot-sut
-        export CYPRESS_BASE_URL=http://localhost
-        npm run test
+        npm run test:ci
 
-    - name: Stop services
+    - name: Upload test artifacts
       if: always()
-      run: docker compose down
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          chatbot-sut/cypress/videos/
+          chatbot-sut/cypress/screenshots/
+          atendimentos-api/newman/
