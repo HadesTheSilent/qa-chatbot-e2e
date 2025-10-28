@@ -64,6 +64,7 @@ app.post('/atendimentos', async (req, res) => {
     if (error) return res.status(500).json({ error: 'schema validation failed' });
     res.status(201).json(row);
   } catch (err) {
+    console.error('POST /atendimentos error', err);
     res.status(500).json({ error: 'db error' });
   }
 });
@@ -78,6 +79,7 @@ app.get('/atendimentos/:id', async (req, res) => {
     if (error) return res.status(500).json({ error: 'falha na validação de schema' });
     res.json(row);
   } catch (err) {
+    console.error('GET /atendimentos/:id error', err);
     res.status(500).json({ error: 'erro de banco' });
   }
 });
@@ -95,6 +97,7 @@ app.put('/atendimentos/:id', async (req, res) => {
     if (error) return res.status(500).json({ error: 'falha na validação de schema' });
     res.json(row);
   } catch (err) {
+    console.error('PUT /atendimentos/:id error', err);
     res.status(500).json({ error: 'erro de banco' });
   }
 });
