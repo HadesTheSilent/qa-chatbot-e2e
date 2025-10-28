@@ -11,48 +11,84 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mongodb:
-        image: mongo:4.4
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: atendimentos
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
         ports:
-          - 27017:27017
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-    
+
     - name: Install dependencies for API
       working-directory: ./atendimentos-api
       run: npm ci
-        
-    - name: Install dependencies for Frontend
+
+    - name: Install dependencies for chatbot backend
+      working-directory: ./chatbot-sut/backend
+      run: npm ci
+
+    - name: Install dependencies for chatbot frontend
+      working-directory: ./chatbot-sut/frontend
+      run: npm ci
+
+    - name: Install dependencies for Cypress tests
       working-directory: ./chatbot-sut
       run: npm ci
-        
-    - name: Build and start API
+
+    - name: Start API
+      working-directory: ./atendimentos-api
+      env:
+        DB_TYPE: postgres
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: atendimentos
+        DB_USER: user
+        DB_PASSWORD: password
       run: |
-        cd atendimentos-api
-        npm run build
         npm start &
         echo "Waiting for API to start..."
-        sleep 15
-        
-    - name: Start Frontend
+        sleep 20
+
+    - name: Start chatbot backend
+      working-directory: ./chatbot-sut/backend
+      env:
+        NODE_ENV: development
+        PORT: 4000
+        ATENDIMENTOS_API_URL: http://localhost:5000
       run: |
-        cd chatbot-sut
+        npm start &
+        echo "Waiting for chatbot backend to start..."
+        sleep 10
+
+    - name: Start chatbot frontend
+      working-directory: ./chatbot-sut/frontend
+      env:
+        VITE_API_URL: http://localhost:4000/api/message
+      run: |
         npm run dev &
-        echo "Waiting for frontend to start..."
-        sleep 15
-        
+        echo "Waiting for chatbot frontend to start..."
+        sleep 10
+
     - name: Install Newman
       run: npm install -g newman
-        
+
     - name: Run Postman tests
+      working-directory: ./atendimentos-api
       run: |
-        cd atendimentos-api
         echo '{
           "id": "env-atendimentos-ci",
           "name": "Atendimentos Environment CI",
@@ -65,11 +101,12 @@ jobs:
           ]
         }' > postman_environment_ci.json
         newman run postman_collection.json --environment postman_environment_ci.json
-        
+
     - name: Run Cypress tests
-      run: |
-        cd chatbot-sut
-        npm run test:ci
+      working-directory: ./chatbot-sut
+      env:
+        CYPRESS_BASE_URL: http://localhost:5173
+      run: npm test
 
     - name: Upload test artifacts
       if: always()
@@ -79,5 +116,4 @@ jobs:
         path: |
           chatbot-sut/cypress/videos/**
           chatbot-sut/cypress/screenshots/**
-          atendimentos-api/newman/**
         if-no-files-found: ignore
