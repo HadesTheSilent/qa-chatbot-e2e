@@ -118,7 +118,16 @@ async function responder(message) {
     return 'NeonBot: Para fechar informe o id, ex: "fechar atendimento 42".';
   }
 
-  return `NeonBot: Recebi sua mensagem -> "${sanitize(message)}"`;
+  // Saudações e ajuda
+  if (/\b(oi|ol[aá])\b/i.test(trimmed)) {
+    return 'NeonBot: Olá! Sou o assistente virtual. Posso ajudar com atendimentos. Digite "ajuda" para ver comandos disponíveis.';
+  }
+
+  if (/\bajuda\b/i.test(trimmed)) {
+    return 'NeonBot: Comandos disponíveis:\n• "abrir atendimento [nome] [contato]"\n• "status atendimento [número]"\n• "fechar atendimento [número]"';
+  }
+
+  return `NeonBot: Não entendi. Digite "ajuda" para ver os comandos disponíveis.`;
 }
 
 // Endpoint do bot com integração aos atendimentos

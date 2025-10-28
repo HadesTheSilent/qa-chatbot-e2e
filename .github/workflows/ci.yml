@@ -10,20 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: atendimentos
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # We'll use docker-compose to start Postgres + API + frontend/backend
 
     steps:
     - uses: actions/checkout@v4
@@ -49,39 +36,53 @@ jobs:
       working-directory: ./chatbot-sut
       run: npm ci
 
-    - name: Start API
-      working-directory: ./atendimentos-api
-      env:
-        DB_TYPE: postgres
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: atendimentos
-        DB_USER: user
-        DB_PASSWORD: password
+    - name: Start all services with docker-compose
       run: |
-        npm start &
-        echo "Waiting for API to start..."
-        sleep 20
+        # Build and start containers defined in repo docker-compose.yml
+        docker-compose up -d --build
+        echo "docker-compose started containers"
 
-    - name: Start chatbot backend
-      working-directory: ./chatbot-sut/backend
-      env:
-        NODE_ENV: development
-        PORT: 4000
-        ATENDIMENTOS_API_URL: http://localhost:5000
+    - name: Wait for services to be ready
       run: |
-        npm start &
-        echo "Waiting for chatbot backend to start..."
-        sleep 10
+        # Wait for Postgres
+        for i in $(seq 1 60); do
+          if (echo > /dev/tcp/127.0.0.1/5432) >/dev/null 2>&1; then
+            echo "Postgres reachable"
+            break
+          fi
+          echo "Waiting for Postgres... ($i)"
+          sleep 1
+        done
 
-    - name: Start chatbot frontend
-      working-directory: ./chatbot-sut/frontend
-      env:
-        VITE_API_URL: http://localhost:4000/api/message
-      run: |
-        npm run dev &
-        echo "Waiting for chatbot frontend to start..."
-        sleep 10
+        # Wait for Atendimentos API (5000)
+        for i in $(seq 1 60); do
+          if (echo > /dev/tcp/127.0.0.1/5000) >/dev/null 2>&1; then
+            echo "Atendimentos API reachable on 5000"
+            break
+          fi
+          echo "Waiting for API... ($i)"
+          sleep 1
+        done
+
+        # Wait for Chatbot backend (4000)
+        for i in $(seq 1 60); do
+          if (echo > /dev/tcp/127.0.0.1/4000) >/dev/null 2>&1; then
+            echo "Chatbot backend reachable on 4000"
+            break
+          fi
+          echo "Waiting for chatbot backend... ($i)"
+          sleep 1
+        done
+
+        # Wait for frontend (80)
+        for i in $(seq 1 60); do
+          if (echo > /dev/tcp/127.0.0.1/80) >/dev/null 2>&1; then
+            echo "Frontend reachable on 80"
+            break
+          fi
+          echo "Waiting for frontend... ($i)"
+          sleep 1
+        done
 
     - name: Install Newman
       run: npm install -g newman
@@ -105,8 +106,13 @@ jobs:
     - name: Run Cypress tests
       working-directory: ./chatbot-sut
       env:
-        CYPRESS_BASE_URL: http://localhost:5173
+        CYPRESS_BASE_URL: http://localhost
       run: npm test
+
+    - name: Dump docker logs
+      if: always()
+      run: |
+        docker-compose logs --no-color > docker-logs.txt || true
 
     - name: Upload test artifacts
       if: always()
@@ -116,4 +122,10 @@ jobs:
         path: |
           chatbot-sut/cypress/videos/**
           chatbot-sut/cypress/screenshots/**
+          docker-logs.txt
         if-no-files-found: ignore
+
+    - name: Tear down docker-compose
+      if: always()
+      run: |
+        docker-compose down -v || true

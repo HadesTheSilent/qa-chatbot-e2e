@@ -4,12 +4,12 @@ Bem-vindo à documentação do QA Chatbot E2E. Este projeto demonstra uma implem
 
 ## 📚 Índice
 
-1. [Guia de Início Rápido](Quick-Start-Guide.md)
-2. [Arquitetura](Architecture.md)
-3. [API Reference](API-Reference.md)
-4. [Guia de Desenvolvimento](Development-Guide.md)
-5. [Testes](Testing-Guide.md)
-6. [Docker](Docker-Guide.md)
+1. [Guia de Início Rápido](Quick-Start-Guide)
+2. [Arquitetura](Architecture)
+3. [API Reference](API-Reference)
+4. [Guia de Desenvolvimento](Development-Guide)
+5. [Testes](Testing-Guide)
+6. [Docker](Docker-Guide)
 
 ## 🎯 Propósito
 
@@ -29,6 +29,7 @@ Este projeto serve como uma demonstração prática de:
 
 ## 🔗 Links Úteis
 
-- [Repositório principal](https://github.com/seu-usuario/qa-chatbot-e2e)
-- [Guia de contribuição](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
+- [Repositório principal](https://github.com/HadesTheSilent/qa-chatbot-e2e)
+- [Guia de contribuição](./CONTRIBUTING.md)
+- [Changelog](./CHANGELOG.md)
+ 
