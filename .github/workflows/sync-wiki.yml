@@ -1,0 +1,42 @@
+name: Sync docs to Wiki
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Clone wiki
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # clone wiki using the workflow token
+        git clone https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.wiki.git wiki
+
+    - name: Copy docs into wiki
+      run: |
+        # copy docs folder content and root Vercel note into the wiki repo
+        cp -r docs/* wiki/ || true
+        if [ -f Vercel-Note.md ]; then cp Vercel-Note.md wiki/ || true; fi
+        cd wiki
+        git add -A
+        # Only commit if there are staged changes
+        if git diff --cached --quiet; then
+          echo "No changes to wiki"
+          exit 0
+        fi
+        git commit -m "docs(wiki): sync docs from main"
+        git push origin main
