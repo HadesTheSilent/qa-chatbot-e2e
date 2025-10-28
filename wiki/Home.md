@@ -82,10 +82,3 @@ Esta seção descreve o fluxo de testes do projeto, como executar localmente, em
 4) Integração com CI
 
 - O pipeline de CI roda os testes em Pull Requests. Se algum teste falhar, revise os logs do job e corrija localmente antes de re-submeter.
-
-5) Troubleshooting rápido
-
-- Problema: testes E2E falham por timeout — aumente timeouts ou rode em ambiente com menos latência (Docker).
-- Problema: falha de conexão com a API — confirme variáveis de ambiente `ATENDIMENTOS_API_URL` / `VITE_API_URL` e serviços em execução.
-
-Se quiser, adiciono comandos de debug mais detalhados, exemplos de configurações `.env` e um checklist de pré-execução para os testes.
