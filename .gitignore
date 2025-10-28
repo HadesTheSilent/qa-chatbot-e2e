@@ -73,10 +73,13 @@ cypress/videos/
 cypress/screenshots/
 
 # Docker
-.dockerignore
+# (o arquivo .dockerignore faz parte do repositório e NÃO deve ser ignorado)
 
 # Backups and local configs
 *.bak
 *_docker.json
-postman_environment_docker.json
+# O arquivo de ambiente do Postman deve ser versionado neste repositório
+# postman_environment_docker.json
+
+# Vercel local directory (ignore apenas o diretório de build local, não o arquivo vercel.json)
 .vercel
