@@ -1,0 +1,11 @@
+.git
+.github
+atendimentos-api
+docs
+*.md
+!README.md
+.vercel
+node_modules
+.gitignore
+docker-compose.yml
+*.bak
