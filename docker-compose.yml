@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: atendimentos
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  atendimentos-api:
+    build: ./atendimentos-api
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=atendimentos
+      - DB_USER=user
+      - DB_PASSWORD=password
+    depends_on:
+      - postgres
+
+  chatbot-backend:
+    build: ./chatbot-sut/backend
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      ATENDIMENTOS_API_URL: http://atendimentos-api:5000
+    depends_on:
+      - atendimentos-api
+
+  chatbot-frontend:
+    build:
+      context: ./chatbot-sut/frontend
+      args:
+        VITE_API_URL: /api/message
+    ports:
+      - "80:80"
+    depends_on:
+      - chatbot-backend
+
+volumes:
+  postgres_data:
