@@ -1,7 +1,7 @@
 const cors = require('cors');
 
 const defaultApiHost = process.env.NODE_ENV === 'production'
-  ? 'https://atendimentos-api-production.up.railway.app'
+  ? '/api/atendimentos-mock' // demo: use local mock on Vercel for safe public demo
   : 'http://localhost:5000';
 
 const atendimentosApi = process.env.ATENDIMENTOS_API_URL || defaultApiHost;
