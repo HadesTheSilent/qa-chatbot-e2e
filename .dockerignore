@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.git
+.github
+README.md
+*.md
+cypress/
+.vscode/
+.idea/
+*.log
+coverage/
+.nyc_output/
+dist/
+build/
