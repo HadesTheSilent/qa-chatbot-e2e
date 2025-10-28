@@ -36,11 +36,11 @@ jobs:
       working-directory: ./chatbot-sut
       run: npm ci
 
-    - name: Start all services with docker-compose
+    - name: Start all services with docker compose
       run: |
         # Build and start containers defined in repo docker-compose.yml
-        docker-compose up -d --build
-        echo "docker-compose started containers"
+        docker compose up -d --build
+        echo "docker compose started containers"
 
     - name: Wait for services to be ready
       run: |
@@ -112,7 +112,7 @@ jobs:
     - name: Dump docker logs
       if: always()
       run: |
-        docker-compose logs --no-color > docker-logs.txt || true
+        docker compose logs --no-color > docker-logs.txt || true
 
     - name: Upload test artifacts
       if: always()
@@ -125,7 +125,7 @@ jobs:
           docker-logs.txt
         if-no-files-found: ignore
 
-    - name: Tear down docker-compose
+    - name: Tear down docker compose
       if: always()
       run: |
-        docker-compose down -v || true
+        docker compose down -v || true
