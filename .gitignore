@@ -83,3 +83,6 @@ cypress/screenshots/
 
 # Vercel local directory (ignore apenas o diretório de build local, não o arquivo vercel.json)
 .vercel
+# Local docker/CI logs
+docker-logs.txt
+docs/publish_vercel_note.sh
