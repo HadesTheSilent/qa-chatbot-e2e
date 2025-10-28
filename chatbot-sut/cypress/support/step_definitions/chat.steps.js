@@ -101,8 +101,10 @@ When('eu fecho o último atendimento', () => {
   cy.get('@ultimoAtendimentoId').then((id) => {
     enviarMensagem(`fechar atendimento ${id}`)
 
-    cy.get('.bubble.bot', { timeout: 8000 })
-      .last()
+    // Aguarda explicitamente por uma nova resposta do bot que confirme o encerramento.
+    // Usamos `cy.contains` para buscar a string esperada 'agora está' — isso evita confusão
+    // com a resposta anterior que também contém 'Atendimento #<id>'.
+    cy.contains('.bubble.bot', 'agora está', { timeout: 10000 })
       .should('contain.text', `Atendimento #${id}`)
       .invoke('text')
       .then((text) => {
