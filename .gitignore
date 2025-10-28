@@ -79,3 +79,4 @@ cypress/screenshots/
 *.bak
 *_docker.json
 postman_environment_docker.json
+.vercel

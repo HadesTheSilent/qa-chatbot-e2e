@@ -23,6 +23,7 @@ if (process.env.DB_TYPE === 'postgres') {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `).catch(err => console.error('Error creating table:', err));
+  ).catch(err => console.error('Erro ao criar tabela:', err));
 
   db = pool;
 } else {

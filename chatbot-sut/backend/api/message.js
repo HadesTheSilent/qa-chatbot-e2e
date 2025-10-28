@@ -1,5 +1,7 @@
 const cors = require('cors');
 
+const cors = require('cors');
+
 const defaultApiHost = process.env.NODE_ENV === 'production'
   ? '/api/atendimentos-mock' // demo: use local mock on Vercel for safe public demo
   : 'http://localhost:5000';
@@ -60,7 +62,7 @@ async function processarMensagem(mensagem) {
   const aberturaMatch = text.match(/abrir?\s+atendimento\s+(?:para\s+)?(\w+)(?:\s+contato\s+(\w+))?/i);
   if (aberturaMatch) {
     const [, nome, contato] = aberturaMatch;
-    return await abrirAtendimento({
+    return await abrirAtendimento(baseUrl, {
       nome: nome || 'Anônimo',
       contato: contato || 'não informado',
       status: 'open',
@@ -71,22 +73,22 @@ async function processarMensagem(mensagem) {
   const consultaMatch = text.match(/(?:consultar?|ver|obter)\s+(?:o\s+)?(?:atendimento|status)\s+#?(\d+)/i);
   if (consultaMatch) {
     const [, id] = consultaMatch;
-    return await obterAtendimento(id);
+    return await obterAtendimento(baseUrl, id);
   }
 
   // Comando para fechar atendimento
   const fechamentoMatch = text.match(/(?:fechar?|encerrar?)\s+(?:o\s+)?atendimento\s+#?(\d+)/i);
   if (fechamentoMatch) {
     const [, id] = fechamentoMatch;
-    return await atualizarStatusAtendimento(id, 'closed');
+    return await atualizarStatusAtendimento(baseUrl, id, 'closed');
   }
 
   // Respostas padrão
-  if (text.includes('oi') || text.includes('ola') || text.includes('hello')) {
+  if (text.includes('oi') || text.includes('ola')) {
     return 'NeonBot: Olá! Sou o assistente virtual. Posso ajudar com atendimentos. Digite "abrir atendimento para [nome]" para começar.';
   }
 
-  if (text.includes('ajuda') || text.includes('help')) {
+  if (text.includes('ajuda')) {
     return 'NeonBot: Comandos disponíveis:\n• "abrir atendimento para [nome] contato [telefone]"\n• "consultar atendimento [número]"\n• "fechar atendimento [número]"';
   }
 
@@ -105,23 +107,32 @@ module.exports = async (req, res) => {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Método não permitido' });
   }
 
   try {
-    const { message } = req.body;
+  const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+      return res.status(400).json({ error: 'mensagem é obrigatória' });
     }
 
     const reply = await processarMensagem(message);
     res.status(200).json({ reply });
 
   } catch (error) {
-    console.error('Error processing message:', error);
-    res.status(500).json({
-      reply: 'NeonBot: Desculpe, ocorreu um erro interno. Tente novamente mais tarde.'
-    });
+    console.error('Erro ao processar mensagem:', error);
+    const isProd = process.env.NODE_ENV === 'production';
+    // Em ambiente de desenvolvimento, mostramos a mensagem/stack para facilitar debug
+    if (isProd) {
+      res.status(500).json({
+        reply: 'NeonBot: Desculpe, ocorreu um erro interno. Tente novamente mais tarde.'
+      });
+    } else {
+      res.status(500).json({
+        reply: `NeonBot: erro interno: ${error && error.message ? error.message : 'desconhecido'}`,
+        error: error && error.stack ? error.stack : String(error)
+      });
+    }
   }
 };

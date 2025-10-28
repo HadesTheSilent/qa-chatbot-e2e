@@ -1,5 +1,7 @@
 // Minimal mock Atendimentos API for demo usage on Vercel
 // This mock does NOT store full PII. It stores only the last 4 digits of contact.
+// Minimal mock Atendimentos API for demo usage on Vercel
+// This mock does NOT store full PII. It stores only the last 4 digits of contact.
 let nextId = 1;
 const store = new Map();
 
