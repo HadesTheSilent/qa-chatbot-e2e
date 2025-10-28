@@ -74,3 +74,8 @@ cypress/screenshots/
 
 # Docker
 .dockerignore
+
+# Backups and local configs
+*.bak
+*_docker.json
+postman_environment_docker.json
