@@ -14,6 +14,6 @@
   "devDependencies": {
     "@badeball/cypress-cucumber-preprocessor": "^23.2.1",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.7",
-    "cypress": "^15.5.0"
+    "cypress": "^13.6.0"
   }
 }
