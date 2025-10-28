@@ -63,12 +63,20 @@ async function atualizarStatusAtendimento(id, status) {
 }
 
 function parseAbrir(message) {
-  const match = message.match(/^abrir atendimento\s+nome\s*=\s*(?<nome>[^,]+)\s+contato\s*=\s*(?<contato>.+)$/i);
+  // Aceita formatos: "abrir atendimento nome=João contato=123" ou "abrir atendimento João 123"
+  const matchComIgual = message.match(/^abrir atendimento\s+nome\s*=\s*(?<nome>[^,]+)\s+contato\s*=\s*(?<contato>.+)$/i);
+  const matchSemIgual = message.match(/^abrir atendimento\s+(?<nome>[^0-9]+?)\s+(?<contato>\d+)$/i);
+  const match = matchComIgual || matchSemIgual;
   if (!match) return null;
 
   const nome = match.groups.nome.trim();
   const contato = match.groups.contato.trim();
-  if (!nome || !contato) return null;
+  
+  // Valida nome (apenas letras e espaços)
+  if (!nome.match(/^[A-Za-zÀ-ÿ\s]+$/)) return null;
+  
+  // Valida contato (apenas números)
+  if (!contato.match(/^\d+$/)) return null;
 
   return { nome, contato };
 }
@@ -91,7 +99,7 @@ async function responder(message) {
     return abrirAtendimento(abrirPayload);
   }
   if (/^abrir atendimento/i.test(trimmed)) {
-    return 'NeonBot: Para abrir use "abrir atendimento nome=Fulana contato=11999999999".';
+    return 'NeonBot: Use "abrir atendimento João 11999999999" ou "abrir atendimento nome=João contato=11999999999". O nome deve conter apenas letras e o contato apenas números.';
   }
 
   const statusId = parseStatus(trimmed);
