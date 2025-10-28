@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
@@ -7,57 +7,52 @@ on:
     branches: [ main ]
 
 jobs:
-  test-api:
+  test:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    - name: Install dependencies
-      run: cd atendimentos-api && npm ci
-    - name: Run Supertest tests
-      run: cd atendimentos-api && npm test
-    - name: Run Newman tests
-      run: cd atendimentos-api && npm run test:postman
 
-  test-frontend:
-    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
+    
     - name: Install dependencies
-      run: cd chatbot-sut && npm ci
-    - name: Install Cypress
-      run: cd chatbot-sut && npm install cypress @badeball/cypress-cucumber-preprocessor @bahmutov/cypress-esbuild-preprocessor
+      run: |
+        cd atendimentos-api && npm ci
+        cd ../chatbot-sut && npm ci
+        
+    - name: Start services with Docker Compose
+      run: |
+        docker compose up -d
+        sleep 10  # Aguarda os serviços iniciarem
+        
+    - name: Install Newman
+      run: npm install -g newman
+        
+    - name: Run Postman tests
+      run: |
+        cd atendimentos-api
+        echo '{
+          "id": "env-atendimentos-ci",
+          "name": "Atendimentos Environment CI",
+          "values": [
+            {
+              "key": "baseUrl",
+              "value": "http://localhost:5000",
+              "enabled": true
+            }
+          ]
+        }' > postman_environment_ci.json
+        newman run postman_collection.json --environment postman_environment_ci.json
+        
     - name: Run Cypress tests
-      run: cd chatbot-sut && npm run test
+      run: |
+        cd chatbot-sut
+        export CYPRESS_BASE_URL=http://localhost
+        npm run test
 
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    needs: [test-api, test-frontend]
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build frontend
-      run: cd chatbot-sut/frontend && npm ci && npm run build
-    - name: Upload frontend build
-      uses: actions/upload-artifact@v3
-      with:
-        name: frontend-build
-        path: chatbot-sut/frontend/dist/
-    - name: Build backend
-      run: cd chatbot-sut/backend && npm ci --only=production
-    - name: Upload backend
-      uses: actions/upload-artifact@v3
-      with:
-        name: backend-build
-        path: chatbot-sut/backend/
-    - name: Build API
-      run: cd atendimentos-api && npm ci --only=production
-    - name: Upload API
-      uses: actions/upload-artifact@v3
-      with:
-        name: api-build
-        path: atendimentos-api/
+    - name: Stop services
+      if: always()
+      run: docker compose down
