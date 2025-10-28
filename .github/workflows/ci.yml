@@ -23,17 +23,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
     
     - name: Install dependencies for API
-      run: |
-        cd atendimentos-api
-        npm ci
+      working-directory: ./atendimentos-api
+      run: npm ci
         
     - name: Install dependencies for Frontend
-      run: |
-        cd chatbot-sut
-        npm ci
+      working-directory: ./chatbot-sut
+      run: npm ci
         
     - name: Build and start API
       run: |
@@ -80,6 +77,7 @@ jobs:
       with:
         name: test-results
         path: |
-          chatbot-sut/cypress/videos/
-          chatbot-sut/cypress/screenshots/
-          atendimentos-api/newman/
+          chatbot-sut/cypress/videos/**
+          chatbot-sut/cypress/screenshots/**
+          atendimentos-api/newman/**
+        if-no-files-found: ignore
