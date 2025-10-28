@@ -1,0 +1,45 @@
+:root{
+  --bg:#0b1220; /* dark */
+  --neon:#00c3ff; /* cyan neon */
+  --neon-2:#3ad6ff;
+  --muted:#8aa3b2;
+}
+html,body,#root{height:100%;}
+body{
+  margin:0;
+  background: radial-gradient(circle at 10% 10%, rgba(0,195,255,0.05), transparent 10%), var(--bg);
+  color: #e6f7ff;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0,195,255,0.3); }
+  50% { box-shadow: 0 0 20px rgba(0,195,255,0.6); }
+}
+.app{
+  display:flex;flex-direction:column;height:100vh;max-width:720px;margin:24px auto;border-radius:12px;padding:12px;backdrop-filter:blur(6px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 30px rgba(0,195,255,0.04);
+  border: 1px solid rgba(0,195,255,0.08);
+  animation: fadeIn 0.5s ease-out;
+}
+.header{font-weight:700;letter-spacing:6px;text-align:center;padding:8px 0;color:var(--neon);font-size:18px;text-shadow: 0 0 10px var(--neon);}
+.chat{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:80%;padding:12px;border-radius:10px;line-height:1.3;animation: fadeIn 0.3s ease-out;}
+.bubble.user{align-self:flex-end;background:linear-gradient(135deg, rgba(0,195,255,0.12), rgba(58,214,255,0.06));border:1px solid rgba(0,195,255,0.12);color:#cfeffb}
+.bubble.bot{align-self:flex-start;background:linear-gradient(90deg, rgba(10,20,30,0.5), rgba(0,0,0,0.35));border:1px solid rgba(58,214,255,0.06);color:var(--muted);}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(0,195,255,0.03)}
+.composer input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,195,255,0.06);background:transparent;color:#e8fbff;transition: border-color 0.3s, box-shadow 0.3s;}
+.composer input:focus{border-color: var(--neon);box-shadow: 0 0 10px rgba(0,195,255,0.3);}
+.composer button{padding:10px 14px;border-radius:8px;border:none;background:linear-gradient(90deg,var(--neon),var(--neon-2));color:#002831;font-weight:700;cursor:pointer;transition: transform 0.2s;}
+.composer button:hover{transform: scale(1.05);}
+.composer button:disabled{opacity: 0.5; cursor: not-allowed;}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .app{margin:12px;padding:8px;}
+  .header{font-size:16px;}
+  .bubble{max-width:90%;}
+}
